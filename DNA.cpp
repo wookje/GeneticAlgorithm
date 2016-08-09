@@ -2,6 +2,7 @@
 
 void DNA::CreateRandomData(int size)
 {
+	int hi;
 	std::random_device rdt;
 	std::mt19937 mtt(rdt());
 	std::uniform_int_distribution<int> randlen(1, size);
