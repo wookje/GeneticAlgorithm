@@ -275,33 +275,33 @@ void HelloWorld::NextDNA()
 
 void HelloWorld::NextGeneration()
 {
-	DNA *nextG[DNA_CNT];
-	double sum_fit = 0;
+	DNA *nextG[DNA_CNT];			// 다음 세대
+	double sum_fit = 0;			// 적합도 총합
 	double tmp1 = 0, tmp2 = 0;
 	int flag = 0, res1 = -1, res2 = -1;
-	sort(list, list + DNA_CNT, [](DNA* const &i, DNA* const &j)->bool {return i->fit > j->fit; });
-	for (int i = 0; i < DNA_CNT; i++) sum_fit += list[i]->fit;
-	std::random_device rdt;
-	std::mt19937 mtt(rdt());
-	std::uniform_real_distribution<double> randfit(0, sum_fit);
+	sort(list, list + DNA_CNT, [](DNA* const &i, DNA* const &j)->bool {return i->fit > j->fit; });	// 현재 세대 데이터 적합도를 기준으로 내립차순 정렬 
+	for (int i = 0; i < DNA_CNT; i++) sum_fit += list[i]->fit;	// 적합도 총합 계산
+	std::random_device rdt;						//
+	std::mt19937 mtt(rdt());					//
+	std::uniform_real_distribution<double> randfit(0, sum_fit);	// 메르센 트위스터 난수 생성기
 
 	for (int i = 0; i < DNA_CNT; i++) nextG[i] = new DNA();
-	for (int i = 0; i < DNA_CNT / 10; i++) nextG[flag++]->SetData(list[i]);
-	for (int i = flag; i < DNA_CNT; i++) {
-		tmp1 = randfit(mtt);
-		tmp2 = randfit(mtt);
+	for (int i = 0; i < DNA_CNT / 10; i++) nextG[flag++]->SetData(list[i]);		// 상위 10% 데이터는 그대로 다음세대로
+	for (int i = flag; i < DNA_CNT; i++) {	// 남은 자리에 교차시킨 데이터를 저장
+		tmp1 = randfit(mtt);	//
+		tmp2 = randfit(mtt);	// 교차할 두 염색체를 고르기 위한 난수
 		for (int j = 0; j < DNA_CNT; j++) {
 			if (tmp1 <= list[j]->fit && res1 == -1) res1 = j;
 			else tmp1 -= list[j]->fit;
 			if (tmp2 <= list[j]->fit && res2 == -1) res2 = j;
 			else tmp2 -= list[j]->fit;
-		}
-		if (res1 == res2) i--;
-		else nextG[i]->SetData(list[res1]->CreateNextGene(list[res2]));
+		}	// 교차할 두 염색체 ( res1 , res2 ) 선택
+		if (res1 == res2) i--;	// 교차할 두 염색체가 같다면 다시 선택
+		else nextG[i]->SetData(list[res1]->CreateNextGene(list[res2]));		// 교차 진행
 	}
-	for (int i = 0; i < DNA_CNT; i++) list[i] = nextG[i];
-	nowG++;
-	NextDNA();
+	for (int i = 0; i < DNA_CNT; i++) list[i] = nextG[i];	// list배열을 다음 세대 데이터로 바꾸고
+	nowG++;							// 현재 세대 증가
+	NextDNA();						// 시뮬레이션 실행
 }
 
 void HelloWorld::ResultDNA(int op)
