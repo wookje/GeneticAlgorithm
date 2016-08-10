@@ -39,6 +39,10 @@ void DNA::SetData(DNA * dna)
 // 님들은 dna1->gene[i]와 dna2->gene[j]를 알아서 적절히 교차하시면 됩니다
 // 다시 말해서 gene[i]와 dna->gene[j]를 교차하라는 거죠
 // i랑 j가 뭐가 될 지는 님들이 생각한 방식대로 구현하는 거고 ㅇㅇ
+// 반복문 쓰고 싶으면 for (int i=0; i<dna->gene.length(); i++) 하시면 됩니다
+// gene의 자료형이 Drive이고 위쪽에 Drive가 struct 대신 class로 정의되어 있습니다!
+// 클래스나 구조체나 똑같은 거라고 생각하시면 됩니다
+// 요약하자면 님들이 쓰면 되는 거는 gene.angle(각도)이랑 gene.interval(길이, 거리)입니다
 // 하 졸라 친절하네
 // 그럼 미래의 수학자 여러분들의 코딩력을 믿습니다!
 // 화이팅!
