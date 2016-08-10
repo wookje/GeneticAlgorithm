@@ -28,6 +28,7 @@ void DNA::SetData(DNA * dna)
 // 우리가 교차해야할 dna1이랑 dna2가 있을 거 아닙니까?
 // dna1은 그냥 len, time, gene.length(), ... 이런 식으로 쓰시면 되구요
 // dna2는 앞에 dna 붙여서 dna->len, dna->time, dna->gene.length(), ... 이렇게 쓰시면 됩니다
+// 왜 ->를 붙이는 지는 아시죠? 포인터 변수니까요
 // dna1은 그냥 전역변수로 선언 돼 있다고 생각하시면 되구요
 // dna2는 인자로 넘어온 저 매개변수라고 생각하시면 됩니다
 // 저기 위쪽에 보시면 SetData 함수에서 gene = dna->gene라고 되어있죠?
