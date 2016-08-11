@@ -48,6 +48,17 @@ void DNA::SetData(DNA * dna)
 // 화이팅!
 DNA * DNA::CreateNextGene(DNA * dna)
 {
+	// 욱제의 로직!
+	// gene.angle의 평균값과 gene.interval의 평균값을 각각 구함
+	// for (int i=0; i<gene.length(); i++)
+	//	random(0~100%중 하나) 수 생성
+	//	gene[i].angle을 random% 만큼 평균값에 가까이 함
+	//	random(0~100%중 하나) 수 생성
+	//	gene[i].interval을 random% 만큼 평균값에 가까이 함
+	//	dna->gene도 똑같이
+	//	gene.length()와 dna->gene.length()의 평균(중간)값 구함
+	// for (int i=0; i<중간값; i++)
+	//	swap(gene[random1], dna->gene[random2])
 	
 	return dna;
 }
