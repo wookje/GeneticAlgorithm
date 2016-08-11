@@ -60,5 +60,75 @@ DNA * DNA::CreateNextGene(DNA * dna)
 	// for (int i=0; i<중간값; i++)
 	//	swap(gene[random1], dna->gene[random2])
 	
+	/*
+	※ 정현 ※
+	ex)
+	a b c d e (5)
+	e f g (3)
+	위 두개의 데이터를 교차
+	- 3 ~ 5 사이 랜덤값을 자식 염색체 길이로 설정
+	- 각 유전자(a~g)가 선택될 확률은 50%
+	- a -> e -> b -> f -> ... 순서대로 선택된 유전자를 자식 염색체에 저장
+	- 0.1% 확률로 돌연변이 발생 ( 돌연변이 발생 시 각도와 시간을 랜덤값으로 재설정 )
+	- 길이가 충족되면 리턴
+	
+	DNA *res = new DNA();
+	int minsize = (len <= dna->len) ? len : dna->len;
+	int maxsize = (len >= dna->len) ? len : dna->len;
+
+	std::random_device rdt;
+	std::mt19937 mtt(rdt());
+	std::uniform_int_distribution<int> randlen(minsize, maxsize);
+	std::uniform_int_distribution<int> randnum(1, 100);
+	std::uniform_real_distribution<double> randangle(-40, 40);
+	std::uniform_real_distribution<double> randinterval(0, 4);
+
+	res->len = randlen(mtt);
+	if (isMutation()) res->len += 2;
+	if (res->len > maxsize) res->len = maxsize;
+
+	for (int i = 0, j = 0,l1,l2, check = 1;;) {
+		int tmp = randnum(mtt);
+		int cangle = (randnum(mtt) <= 50) ? 1 : -1;
+		int cinterval = (randnum(mtt) <= 50) ? 1 : -1;
+		int p = (check == 1) ? i : j;
+		int length = (check == 1) ? len : dna->len;
+		
+		(len >= i) ? l1 = len - i : l1 = 0;
+		(dna->len >= j) ? l2 = dna->len - j : l2 = 0;
+
+		if (l1 + l2 == res->len - res->gene.size()) {
+			for (int k = i, l = j;;) {
+				if (k >= len && l >= dna->len) break;
+				if (k < len) {
+					if (isMutation()) gene[k].angle = randangle(mtt);
+					if (isMutation()) gene[k].interval = randinterval(mtt);
+					gene[k].reviseData();
+					res->gene.push_back(gene[k++]);
+				}
+				if (l < dna->len) {
+					if (isMutation()) dna->gene[l].angle = randangle(mtt);
+					if (isMutation()) dna->gene[l].interval = randinterval(mtt);
+					dna->gene[l].reviseData();
+					res->gene.push_back(dna->gene[l++]);
+				}
+			}
+		}
+		if (res->len == res->gene.size()) break;
+		if (tmp <= 50 && p < length) {
+			Drive ttmp = (check == 1) ? gene[p] : dna->gene[p];
+			if (isMutation()) ttmp.angle = randangle(mtt);
+			if (isMutation()) ttmp.interval = randinterval(mtt);
+			ttmp.reviseData();
+			res->gene.push_back(ttmp);
+		}
+		(check == 1) ? i++ : j++;
+		check *= -1;
+		if (res->len == res->gene.size()) break;
+	}
+
+	return res;
+	*/
+	
 	return dna;
 }
