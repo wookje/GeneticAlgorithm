@@ -60,5 +60,19 @@ DNA * DNA::CreateNextGene(DNA * dna)
 	// for (int i=0; i<중간값; i++)
 	//	swap(gene[random1], dna->gene[random2])
 	
+/*	int AVR_length = (gene.length()+dna->gene.length())/2;
+	
+	int RND_NUM_angle;
+	int RND_NUM_interval;
+	
+	for(i=0;i<AVR_length;i++)
+	{
+		//gene[i].angle과 dna->gene[i].angle 사이의 난수 설정 (RND_NUM_angle)
+		//(gene[i].angle+dna->gene[i].angle+RND_NUM_angle)/2를 교차값으로 설정
+		//gene[i].interval과 dna->gene[i].interval 사이의 난수 설정 (RND_NUM_interval)
+		//(gene[i].interval+dna->gene[i].interval+RND_NUM_interval)/2를 교차값으로 설정
+	}
+*/
+	
 	return dna;
 }
