@@ -67,11 +67,11 @@ double HelloWorld::getMinTurnRadius() {
 	double normalMinRadius = 0.1;
 	double maxSpeedBeforeGripLoss = 20;
 	double minTurnRadius = 0;
-	if (speed < maxSpeedBeforeGripLoss) {
+	if (currentSpeed < maxSpeedBeforeGripLoss) {
 		minTurnRadius = normalMinRadius;
 	}
 	else {
-		double momentumRadiusAdjustment = pow(speed, 2) - maxSpeedBeforeGripLoss;
+		double momentumRadiusAdjustment = pow(currentSpeed, 2) - maxSpeedBeforeGripLoss;
 		minTurnRadius = normalMinRadius + momentumRadiusAdjustment;
 	}
 
@@ -91,10 +91,11 @@ double HelloWorld::getCarTurnAngle() {
 	double rotationFactor = 0.6;
 	double targetTurnAngle = getWheelAngle() * rotationFactor;
 	double turnCircleMinRadius = getMinTurnRadius();
-	double maxTurnAngle = getAngleOnTurnCircle(turnCircleMinRadius, speed);
+	double maxTurnAngle = getAngleOnTurnCircle(turnCircleMinRadius, currentSpeed);
 
-	if (abs(targetTurnAngle) > abs(maxTurnAngle)) return maxTurnAngle;
-	else return targetTurnAngle * speed * 0.004;
+	//if (abs(targetTurnAngle) > abs(maxTurnAngle)) return maxTurnAngle;
+	//else return targetTurnAngle * currentSpeed * 0.004;
+	return targetTurnAngle * currentSpeed / INC_SPEED *0.004;
 }
 
 void HelloWorld::setMode(bool mode)
@@ -116,10 +117,11 @@ double HelloWorld::getWheelAngle() {
 
 void HelloWorld::ResetCar()
 {
-	car->setPosition(ccp(spawnx, spawny));
+	currentSpeed = 0;
 	movement = STEADY;
 	setCarAngle(0);
-	currentSpeed = 0;
+	setWheelAngle(0); 
+	car->setPosition(ccp(spawnx, spawny));
 }
 
 void HelloWorld::process(int type) {
@@ -144,10 +146,8 @@ void HelloWorld::adjustSpeed(int type) {
 	double ACCELERATION, COAST_DECELERATION, DECELERATION;
 	switch (type) {
 	case ACCELERATING:
-		if (currentSpeed >= MAX_SPEED) return;
-		//ACCELERATION = 0.75;
-		//currentSpeed = currentSpeed + ACCELERATION;
-		currentSpeed = MAX_SPEED;
+		if (currentSpeed >= MAX_SPEED*INC_SPEED) return;
+		currentSpeed = MAX_SPEED*INC_SPEED;
 		break;
 	case COASTING:
 		if (currentSpeed <= 0) {
@@ -171,7 +171,7 @@ void HelloWorld::adjustSpeed(int type) {
 }
 
 void HelloWorld::adjustPosition(int type) {
-	double speedInGeometrySpace = currentSpeed * SPEED_TO_CAR_SPACE_FRAME;
+	double speedInGeometrySpace = currentSpeed *SPEED_TO_CAR_SPACE_FRAME;
 	double wheelTurnAngle = getWheelAngle();
 	double attemptedTurnAmount = getCarTurnAngle();
 
@@ -181,7 +181,7 @@ void HelloWorld::adjustPosition(int type) {
 	}
 	
 	double wheelTurnSpeedAttenuation = 1;
-	if (currentSpeed > 15) {
+	if (currentSpeed > 15 * INC_SPEED) {
 		double WHEEL_TURN_SPEED_ATTENUATION_FACTOR = 0.01;
 		wheelTurnSpeedAttenuation = 1 - abs(WHEEL_TURN_SPEED_ATTENUATION_FACTOR * wheelTurnAngle / WHEEL_MAX_TURN_ANGLE);
 	}
@@ -195,8 +195,6 @@ void HelloWorld::adjustPosition(int type) {
 	
 	newCarAngle = double(INTnewCarAngle % 360) + newCarAngle - (double)INTnewCarAngle;
 	if (newCarAngle < 0) newCarAngle = 360.0 - newCarAngle;
-
-	//setBodyRoll(currentSpeed, wheelTurnAngle);
 
 	double xMovement = speedInGeometrySpace * sin(toRadians(newCarAngle));
 	double yMovement = speedInGeometrySpace * cos(toRadians(newCarAngle));
@@ -275,33 +273,34 @@ void HelloWorld::NextDNA()
 
 void HelloWorld::NextGeneration()
 {
-	DNA *nextG[DNA_CNT];			// 다음 세대
-	double sum_fit = 0;			// 적합도 총합
+	DNA *nextG[DNA_CNT];
+	double sum_fit = 0;
 	double tmp1 = 0, tmp2 = 0;
 	int flag = 0, res1 = -1, res2 = -1;
-	sort(list, list + DNA_CNT, [](DNA* const &i, DNA* const &j)->bool {return i->fit > j->fit; });	// 현재 세대 데이터 적합도를 기준으로 내립차순 정렬 
-	for (int i = 0; i < DNA_CNT; i++) sum_fit += list[i]->fit;	// 적합도 총합 계산
-	std::random_device rdt;						//
-	std::mt19937 mtt(rdt());					//
-	std::uniform_real_distribution<double> randfit(0, sum_fit);	// 메르센 트위스터 난수 생성기
+	sort(list, list + DNA_CNT, [](DNA* const &i, DNA* const &j)->bool {return i->fit > j->fit; });
+	for (int i = 0; i < DNA_CNT; i++) sum_fit += list[i]->fit;
+	std::random_device rdt;
+	std::mt19937 mtt(rdt());
+	std::uniform_real_distribution<double> randfit(0, sum_fit);
 
 	for (int i = 0; i < DNA_CNT; i++) nextG[i] = new DNA();
-	for (int i = 0; i < DNA_CNT / 10; i++) nextG[flag++]->SetData(list[i]);		// 상위 10% 데이터는 그대로 다음세대로
-	for (int i = flag; i < DNA_CNT; i++) {	// 남은 자리에 교차시킨 데이터를 저장
-		tmp1 = randfit(mtt);	//
-		tmp2 = randfit(mtt);	// 교차할 두 염색체를 고르기 위한 난수
+	for (int i = 0; i < DNA_CNT / 10; i++) nextG[flag]->SetData(list[i]);
+	for (int i = flag; i < DNA_CNT; i++) {
+		tmp1 = randfit(mtt);
+		tmp2 = randfit(mtt);
+		res1 = res2 = -1;
 		for (int j = 0; j < DNA_CNT; j++) {
 			if (tmp1 <= list[j]->fit && res1 == -1) res1 = j;
 			else tmp1 -= list[j]->fit;
 			if (tmp2 <= list[j]->fit && res2 == -1) res2 = j;
 			else tmp2 -= list[j]->fit;
-		}	// 교차할 두 염색체 ( res1 , res2 ) 선택
-		if (res1 == res2) i--;	// 교차할 두 염색체가 같다면 다시 선택
-		else nextG[i]->SetData(list[res1]->CreateNextGene(list[res2]));		// 교차 진행
+		}
+		if (res1 == res2) i--;
+		else nextG[i]->SetData(list[res1]->CreateNextGene(list[res2]));
 	}
-	for (int i = 0; i < DNA_CNT; i++) list[i] = nextG[i];	// list배열을 다음 세대 데이터로 바꾸고
-	nowG++;							// 현재 세대 증가
-	NextDNA();						// 시뮬레이션 실행
+	for (int i = 0; i < DNA_CNT; i++) list[i] = nextG[i];
+	nowG++;
+	NextDNA();
 }
 
 void HelloWorld::ResultDNA(int op)
@@ -310,16 +309,16 @@ void HelloWorld::ResultDNA(int op)
 	this->unschedule(schedule_selector(HelloWorld::callback2));
 	list[nowDNA]->end = clock();
 	list[nowDNA]->time = (double)(list[nowDNA]->end - list[nowDNA]->start) / CLOCKS_PER_SEC;
-	list[nowDNA]->fit = MAX_SPEED*list[nowDNA]->time / (double)list[nowDNA]->len;
+	list[nowDNA]->fit = MAX_SPEED*INC_SPEED*list[nowDNA]->time * (double)list[nowDNA]->now;
+	//list[nowDNA]->fit = MAX_SPEED*list[nowDNA]->time;
 	string str = "$$ Data Collision $$\n";
 	if (op == 1) str = "$$ Data Collision $$\n";
 	else if (op == 2) str = "$$ Data End $$\n";
 	str.append("Generation : ");
 	str.append(int2string(nowG) + "\nNowDNA : ");
 	str.append(int2string(nowDNA) + "\nLength : ");
-	str.append(int2string(list[nowDNA]->len) + "\nStartTime : ");
-	str.append(int2string(list[nowDNA]->start) + "\nEndTime : ");
-	str.append(int2string(list[nowDNA]->end) + "\nTime : ");
+	str.append(int2string(list[nowDNA]->len) + "\nMutation : ");
+	str.append(int2string(list[nowDNA]->isMutate) + "\nTime : ");
 	str.append(double2string(list[nowDNA]->time) + "\nFitness : ");
 	str.append(double2string(list[nowDNA]->fit));
 	info2->setString(str);
@@ -338,7 +337,8 @@ void HelloWorld::callback(float delta)
 		ResultDNA(2);
 		return;
 	}
-	if (!list[nowDNA]->isStart) {
+	if (list[nowDNA]->isStart) movement = ACCELERATING;
+	else {
 		list[nowDNA]->isStart = true;
 		movement = ACCELERATING; 
 		list[nowDNA]->start = clock();
@@ -359,7 +359,7 @@ void HelloWorld::callback(float delta)
 
 	info2->setString(str);
 
-	this->scheduleOnce(schedule_selector(HelloWorld::callback2), interval);
+	this->scheduleOnce(schedule_selector(HelloWorld::callback2), interval / INC_SPEED);
 	list[nowDNA]->now++;
 }
 
@@ -369,7 +369,8 @@ void HelloWorld::callback2(float delta)
 		ResultDNA(2);
 		return;
 	}
-	if (!list[nowDNA]->isStart) {
+	if (list[nowDNA]->isStart) movement = ACCELERATING;
+	else {
 		list[nowDNA]->isStart = true;
 		movement = ACCELERATING;
 		list[nowDNA]->start = clock();
@@ -390,26 +391,23 @@ void HelloWorld::callback2(float delta)
 
 	info2->setString(str);
 
-	this->scheduleOnce(schedule_selector(HelloWorld::callback), interval);
+	this->scheduleOnce(schedule_selector(HelloWorld::callback), interval / INC_SPEED);
 	list[nowDNA]->now++;
 }
 
 void HelloWorld::update(float delta) {
 	process(movement);
-	double overheadAngle = getCarAngle();
-	setCarAngle(overheadAngle);
-	speed = getCarSpeed();
 }
 
 void HelloWorld::onKeyPressed(cocos2d::EventKeyboard::KeyCode keycode, cocos2d::Event * event)
 {
 	switch (keycode) {
 		//case key::KEY_UP_ARROW:movement = ACCELERATING; break;
-	case key::KEY_DOWN_ARROW:movement = DECELERATING; break;
+	case key::KEY_DOWN_ARROW:movement = ACCELERATING; break;
 	case key::KEY_UP_ARROW:StartDNA(); break;
 	//case key::KEY_DOWN_ARROW:StartSimul(); break;
-	case key::KEY_RIGHT_ARROW:setWheelAngle(35); movement = ACCELERATING; break;
-	case key::KEY_LEFT_ARROW:setWheelAngle(-26); movement = ACCELERATING; break;
+	case key::KEY_RIGHT_ARROW:setWheelAngle(-29); movement = ACCELERATING; break;
+	case key::KEY_LEFT_ARROW:setWheelAngle(-2); movement = ACCELERATING; break;
 	default:break;
 	}
 }
@@ -433,7 +431,7 @@ void HelloWorld::SelectOption(Ref * pSender, CheckBox::EventType type)
 	case CheckBox::EventType::SELECTED:
 		if(tag==TAG_CHECK_BACK) isBack = true;
 		if (tag == TAG_CHECK_RIGHT) setWheelAngle(30);
-		if (tag == TAG_CHECK_LEFT) setWheelAngle(-30);
+		if (tag == TAG_CHECK_LEFT) setWheelAngle(-26);
 		break;
 	case CheckBox::EventType::UNSELECTED:
 		if (tag == TAG_CHECK_BACK) isBack = false;
