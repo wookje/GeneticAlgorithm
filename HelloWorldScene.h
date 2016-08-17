@@ -11,10 +11,11 @@ USING_NS_CC;
 using namespace cocos2d::ui;
 using namespace std;
 
-#define WHEEL_MAX_TURN_ANGLE 35.0
+#define WHEEL_MAX_TURN_ANGLE 40.0
 //#define SPEED_TO_CAR_SPACE_FRAME 0.005
 #define SPEED_TO_CAR_SPACE_FRAME 0.05
 #define MAX_SPEED 50
+#define INC_SPEED 3
 #define ACCELERATING 1
 #define DECELERATING 2
 #define COASTING 3
@@ -31,7 +32,7 @@ using namespace std;
 
 #define DNA_CNT 10
 #define DNA_RANGE 10
-#define DNA_INTERVER 5.0f
+#define DNA_INTERVER 0.5f
 
 class HelloWorld : public cocos2d::Layer
 {
